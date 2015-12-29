@@ -2,8 +2,8 @@ elation.require([], function() {
   elation.component.add('engine.things.snake_level', function() {
     this.postinit = function() {
       this.defineProperties({
-        width: { type: 'integer', default: 20 },
-        height: { type: 'integer', default: 20 },
+        width: { type: 'integer', default: 60 },
+        height: { type: 'integer', default: 60 },
         blocksize: { type: 'float', default: 1 }
       });
     }
