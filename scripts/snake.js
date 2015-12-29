@@ -35,7 +35,7 @@ elation.require([
             name: 'camera',
             type: 'snake_camera',
             properties: {
-              position: [0, 0, 20]
+              position: [0, 0, 60]
             }
           },
           'player': {
@@ -86,14 +86,19 @@ elation.require([
       // Increase the difficulty by one level
       this.currentlevel++;
       var offset = this.getMapOffset();
-      this.target.properties.position.set(Math.floor(Math.random() * (this.level.map[0].length - 2)) - offset[0] + 1, Math.floor(Math.random() * (this.level.map.length - 2)) - offset[1] + 1, 0);
+      //this.target.properties.position.set(Math.floor(Math.random() * (this.level.map[0].length - 2)) - offset[0] + 1, Math.floor(Math.random() * (this.level.map.length - 2)) - offset[1] + 1, 0);
+      var newtargetpos = false;
+      while (!newtargetpos || this.player.isTouching(newtargetpos[0], newtargetpos[1])) {
+        newtargetpos = [Math.floor(Math.random() * (this.level.map[0].length - 2)) - offset[0] + 1, Math.floor(Math.random() * (this.level.map.length - 2)) - offset[0] + 1];
+      }
+      this.target.properties.position.set(newtargetpos[0], newtargetpos[1], 0);
       this.target.setLabel(this.currentlevel);
       //this.setSpeed(this.currentlevel);
       this.player.setLength(this.currentlevel);
     }
     this.setSpeed = function(speed) {
       // Determine speed from a formula based on the current level
-      var realspeed = 2 + Math.pow(Math.log(speed + 1), 2);
+      var realspeed = 10 + Math.pow(Math.log(speed + 1), 2);
       this.gamespeed = realspeed;
       this.player.properties.speed = realspeed;
     }
