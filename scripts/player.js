@@ -35,25 +35,39 @@ elation.require([], function() {
       this.segments.push(segment);
       return segment;
     }
+    this.addSegments = function(num) {
+      for (var i = 0; i < num; i++) {
+        this.addSegment();
+      }
+    }
     this.updateControls = function(ev) {
+      if (ev.value == 1) {
+        this.move(ev.type);
+      }
+    }
+    this.move = function(dir) {
       var moves = {
         'move_up': [0, 1],
         'move_down': [0, -1],
         'move_left': [-1, 0],
         'move_right': [1, 0]
       };
-      if (ev.value == 1) {
-        var move = moves[ev.type];
-        this.move(move);
-      }
-    }
-    this.move = function(dir) {
-      if (!(dir[0] == 0 && dir[1] == 0) && (this.segments.length == 1 || !(dir[0] == this.movedir[0] * -1 && dir[1] == this.movedir[1] * -1))) {
-        this.movedir = dir;
+      var move = moves[dir];
+
+      if (!((dir == 'move_up' && this.currentmove == 'move_down') ||
+            (dir == 'move_down' && this.currentmove == 'move_up') ||
+            (dir == 'move_left' && this.currentmove == 'move_right') ||
+            (dir == 'move_right' && this.currentmove == 'move_left'))) {
+          
+
+        if (!(move[0] == 0 && move[1] == 0) && (this.segments.length == 1 || !(move[0] == this.movedir[0] * -1 && move[1] == this.movedir[1] * -1))) {
+          this.movedir = move;
+        }
+        this.nextmove = dir;
       }
     }
     this.setLength = function(length) {
-      this.addSegment();
+      this.addSegments(10);
     }
     this.update = function() {
       var speed = this.properties.speed;
@@ -70,7 +84,6 @@ elation.require([], function() {
         this.tail.properties.position.copy(this.properties.position);
         this.tail.properties.velocity.copy(this.properties.velocity);
 
-console.log(this.segments.length);
         if (this.segments.length > 1) {
           this.segments[0].properties.position.copy(pos);
           this.tail.properties.position.copy(this.segments[this.segments.length - 1].properties.position);
@@ -104,10 +117,22 @@ console.log(this.segments.length);
         this.segments[i].die();
       }
       this.segments = [];
-      this.addSegment();
+      this.addSegments(5);
     }
 
+    this.isTouching = function(x, y) {
+      for (var i = 1; i < this.segments.length; i++) {
+        var segpos = this.segments[i].properties.position;
+        if (segpos.x == x && segpos.y == y) {
+          return true;
+        }
+      }
+      return false;
+    }
     this.isCollidingWithSelf = function() {
+      if (this.properties.velocity.lengthSq() < 1e-6) {
+        return false;
+      }
       var pos = new THREE.Vector3(
         Math.round(this.properties.position.x),
         Math.round(this.properties.position.y),
@@ -116,7 +141,6 @@ console.log(this.segments.length);
       
       for (var i = 1; i < this.segments.length; i++) {
         var segpos = this.segments[i].properties.position;
-console.log(pos.toArray(), segpos.toArray());
         if (pos.equals(segpos)) {
           return true;
         }
