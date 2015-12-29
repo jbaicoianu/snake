@@ -9,7 +9,7 @@ return new THREE.Object3D();
     this.setLabel = function(label) {
       if (this.label) this.remove(this.label);
       //this.label = new THREE.Mesh(new THREE.TextGeometry(label), new THREE.MeshPhongMaterial({color: 0xccccc}));
-      this.label = this.spawn('label', 'label_' + label, { text: label, size: 0.75, position: [-.1, 0, 0] });
+      this.label = this.spawn('label', 'label_' + label, { text: label, size: 1.25, position: [-.1, 0, 0] });
     }
   }, elation.engine.things.generic);
 });
