@@ -45,6 +45,9 @@ elation.require([
           'level': {
             name: 'level',
             type: 'snake_level',
+            properties: {
+              collidable: false // temporary
+            }
           },
           'target': {
             name: 'target',
@@ -58,6 +61,8 @@ elation.require([
       this.player = things.children.world.children.player;
       this.level = things.children.world.children.level;
       this.target = things.children.world.children.target;
+
+      elation.events.add(this.target, 'collide', elation.bind(this, this.advance));
 
       // Activate the camera
       this.engine.systems.render.views.main.setactivething(this.camera);
@@ -123,7 +128,7 @@ elation.require([
       block = block || this.player.isCollidingWithSelf();
       if (ppos[0] == this.target.properties.position.x + offset[0] && ppos[1] == this.target.properties.position.y + offset[1]) {
         console.log('got it!');
-        this.advance();
+        //this.advance();
       } else if (block) {
         console.log('crashed!');
         this.reset();
