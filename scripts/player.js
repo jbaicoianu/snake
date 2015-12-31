@@ -19,15 +19,25 @@ elation.require([], function() {
       return new THREE.Object3D();
     }
     this.createChildren = function() {
-      this.head = this.createSegment('head');
-      this.tail = this.createSegment('tail');
+      this.head = this.spawn('snake_segment', 'segment_head', {
+        position: this.properties.position.toArray()
+      }, true);
+      this.tail = this.spawn('snake_segment', 'segment_tail', {
+        position: this.properties.position.toArray(),
+        collidable: false
+      }, true);
     }
     this.createSegment = function(id) {
       if (!id) id = this.segments.length;
-      var pos = (this.segments.length > 0 ? this.segments[this.segments.length - 1].properties.position : this.properties.position);
-      var segment = this.spawn('snake_segment', 'segment' + id, {
-        position: pos.toArray()
-      }, true);
+      var pos = (this.segments.length > 0 ? this.segments[this.segments.length - 1].position : this.properties.position).clone();
+      pos.x = Math.round(pos.x);
+      pos.y = Math.round(pos.y);
+      pos.z = Math.round(pos.z);
+
+      var segment = new THREE.Mesh(new THREE.CubeGeometry(1,1,1), new THREE.MeshPhongMaterial({color: 0xffcc00}));
+      this.objects['3d'].parent.add(segment);
+      segment.position.copy(pos);
+      
       return segment;
     }
     this.addSegment = function() {
@@ -85,16 +95,14 @@ elation.require([], function() {
         this.tail.properties.velocity.copy(this.properties.velocity);
 
         if (this.segments.length > 1) {
-          this.segments[0].properties.position.copy(pos);
-          this.tail.properties.position.copy(this.segments[this.segments.length - 1].properties.position);
-          this.tail.properties.velocity.subVectors(this.segments[this.segments.length - 2].properties.position, this.segments[this.segments.length - 1].properties.position).multiplyScalar(this.properties.speed);
-          this.segments[0].properties.velocity.set(0,0,0);
+          this.segments[0].position.copy(pos);
+          this.tail.properties.position.copy(this.segments[this.segments.length - 1].position);
+          this.tail.properties.velocity.subVectors(this.segments[this.segments.length - 2].position, this.segments[this.segments.length - 1].position).multiplyScalar(this.properties.speed);
           for (var i = this.segments.length-1; i > 0; i--) {
-            this.segments[i].properties.position.copy(this.segments[i-1].properties.position);
+            this.segments[i].position.copy(this.segments[i-1].position);
           }
         } else {
-          this.segments[0].properties.position.copy(pos);
-          this.segments[0].properties.velocity.copy(this.properties.velocity);
+          this.segments[0].position.copy(pos);
         }
       }
 
@@ -114,7 +122,7 @@ elation.require([], function() {
       this.movedir = [0,0];
       this.refresh();
       for (var i = 0; i < this.segments.length; i++) {
-        this.segments[i].die();
+        this.objects['3d'].parent.remove(this.segments[i]);
       }
       this.segments = [];
       this.addSegments(5);
@@ -122,7 +130,7 @@ elation.require([], function() {
 
     this.isTouching = function(x, y) {
       for (var i = 1; i < this.segments.length; i++) {
-        var segpos = this.segments[i].properties.position;
+        var segpos = this.segments[i].position;
         if (segpos.x == x && segpos.y == y) {
           return true;
         }
@@ -140,7 +148,7 @@ elation.require([], function() {
       );
       
       for (var i = 1; i < this.segments.length; i++) {
-        var segpos = this.segments[i].properties.position;
+        var segpos = this.segments[i].position;
         if (pos.equals(segpos)) {
           return true;
         }
