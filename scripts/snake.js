@@ -197,9 +197,9 @@ elation.require([
 
       // Increment score only if moving
       if (this.player.properties.velocity.lengthSq() > 1e-6) {
-        this.setScore(this.score + this.player.segments.length / 5);
+        this.setScore(this.score + Math.pow(this.player.segments.length / 5, this.player.properties.speedmultiplier));
       }
-      setTimeout(elation.bind(this, this.tick), 1000 / this.gamespeed);
+      setTimeout(elation.bind(this, this.tick), 1000 / (this.gamespeed * this.player.properties.speedmultiplier));
     }
     this.getMapOffset = function() {
       return [(this.level.map[0].length) / 2, (this.level.map.length) / 2];
