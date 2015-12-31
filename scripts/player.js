@@ -2,14 +2,16 @@ elation.require([], function() {
   elation.component.add('engine.things.snake_player', function() {
     this.postinit = function() {
       this.defineProperties({
-        speed: { type: 'float', default: 2 }
+        speed: { type: 'float', default: 2 },
+        speedmultiplier: { type: 'float', default: 1 }
       });
       this.controls = this.engine.systems.controls.addContext('player', {
         'move_up': ['keyboard_w,keyboard_shift_w,keyboard_up', elation.bind(this, this.updateControls)],
         'move_down': ['keyboard_s,keyboard_shift_s,gamepad_0_axis_1,keyboard_down', elation.bind(this, this.updateControls)],
         'move_left': ['keyboard_a,keyboard_shift_a,keyboard_left', elation.bind(this, this.updateControls)],
         'move_right': ['keyboard_d,keyboard_shift_d,gamepad_0_axis_0,keyboard_right', elation.bind(this, this.updateControls)],
-        'reset': ['keyboard_r', elation.bind(this, this.reset)],
+        //'reset': ['keyboard_r', elation.bind(this, this.reset)],
+        'speedup': ['keyboard_z', elation.bind(this, this.speedup)],
       });
       this.engine.systems.controls.activateContext('player');
       this.movedir = [0, 0];
@@ -80,7 +82,7 @@ elation.require([], function() {
       this.addSegments(10);
     }
     this.update = function() {
-      var speed = this.properties.speed;
+      var speed = this.properties.speed * this.properties.speedmultiplier;
       this.properties.velocity.set(this.movedir[0] * speed, this.movedir[1] * speed, 0);
       this.snapPosition();
     }
@@ -106,6 +108,9 @@ elation.require([], function() {
         }
       }
 
+    }
+    this.speedup = function(ev) {
+      this.properties.speedmultiplier = (ev.value ? 2 : 1);
     }
     this.reset = function() {
       this.properties.position.set(0,0,0);
