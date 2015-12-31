@@ -4,9 +4,11 @@ elation.require([], function() {
       var geo = new THREE.SphereGeometry(.5);
       var mat = new THREE.MeshPhongMaterial({color: 0x00ff00, transparent: true, opacity: 0});
       var mesh = new THREE.Mesh(geo, mat);
-      this.light = new THREE.PointLight(0xffff00, .5, 10);
+      this.light = new THREE.SpotLight(0xffff00, .5, 1000);
       mesh.add(this.light);
-      this.light.position.z = 2;
+      this.light.position.z = 3;
+      this.light.target = mesh;
+      this.light.castShadow = true;
       return mesh;
     }
     this.createChildren = function() {
@@ -21,7 +23,7 @@ elation.require([], function() {
         font: 'Graph 35+ pix',
         align: 'center',
         verticalalign: 'middle',
-        zalign: 'back'
+        zalign: 'middle'
       });
     }
   }, elation.engine.things.generic);
