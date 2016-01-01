@@ -15,7 +15,8 @@ elation.require([], function() {
         'speedup': ['keyboard_z', elation.bind(this, this.speedup)],
       });
       this.engine.systems.controls.activateContext('player');
-      this.movedir = [0, 0];
+      this.moves = [];
+      this.lastmovedir = [0,0];
       this.segments = [];
     }
     this.createObject3D = function() {
@@ -59,32 +60,31 @@ elation.require([], function() {
       }
     }
     this.move = function(dir) {
-      var moves = {
-        'move_up': [0, 1],
-        'move_down': [0, -1],
-        'move_left': [-1, 0],
-        'move_right': [1, 0]
-      };
-      var move = moves[dir];
-
-      if (!((dir == 'move_up' && this.currentmove == 'move_down') ||
-            (dir == 'move_down' && this.currentmove == 'move_up') ||
-            (dir == 'move_left' && this.currentmove == 'move_right') ||
-            (dir == 'move_right' && this.currentmove == 'move_left'))) {
-          
-
-        if (!(move[0] == 0 && move[1] == 0) && (this.segments.length == 1 || !(move[0] == this.movedir[0] * -1 && move[1] == this.movedir[1] * -1))) {
-          this.movedir = move;
-        }
-        this.nextmove = dir;
+      if (!this.lastmove || 
+          ((dir == 'move_up' && this.lastmove != 'move_down') ||
+           (dir == 'move_down' && this.lastmove != 'move_up') ||
+           (dir == 'move_left' && this.lastmove != 'move_right') ||
+           (dir == 'move_right' && this.lastmove != 'move_left'))) {
+        this.moves.push(dir);
+        this.lastmove = dir;
       }
     }
     this.setLength = function(length) {
       this.addSegments(10);
     }
     this.update = function() {
-      var speed = this.properties.speed * this.properties.speedmultiplier;
-      this.properties.velocity.set(this.movedir[0] * speed, this.movedir[1] * speed, 0);
+      var moves = {
+        'move_up': [0, 1],
+        'move_down': [0, -1],
+        'move_left': [-1, 0],
+        'move_right': [1, 0]
+      };
+      if (this.moves.length > 0) {
+        var move = this.moves.shift();
+        this.lastmovedir = moves[move];
+        var speed = this.properties.speed * this.properties.speedmultiplier;
+        this.properties.velocity.set(moves[move][0] * speed, moves[move][1] * speed, 0);
+      }
       this.snapPosition();
     }
     this.snapPosition = function() {
@@ -128,7 +128,7 @@ elation.require([], function() {
         this.tail.properties.velocity.set(0,0,0);
       }
 
-      this.movedir = [0,0];
+      this.lastmovedir = [0,0];
       this.refresh();
       for (var i = 0; i < this.segments.length; i++) {
         this.objects['3d'].parent.remove(this.segments[i]);
