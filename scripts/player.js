@@ -2,6 +2,7 @@ elation.require([], function() {
   elation.component.add('engine.things.snake_player', function() {
     this.postinit = function() {
       this.defineProperties({
+        startpos: { type: 'vector2', default: [0,0] },
         speed: { type: 'float', default: 2 },
         speedmultiplier: { type: 'float', default: 1 }
       });
@@ -113,14 +114,17 @@ elation.require([], function() {
       this.properties.speedmultiplier = (ev.value ? 2 : 1);
     }
     this.reset = function() {
-      this.properties.position.set(0,0,0);
+      this.properties.position.x = this.properties.startpos.x;
+      this.properties.position.y = this.properties.startpos.y;
       this.properties.velocity.set(0,0,0);
 
       if (this.head && this.tail) {
-        this.head.properties.position.set(0,0,0);
+        this.head.properties.position.x = this.properties.startpos.x;
+        this.head.properties.position.y = this.properties.startpos.y;
         this.head.properties.velocity.set(0,0,0);
 
-        this.tail.properties.position.set(0,0,0);
+        this.tail.properties.position.x = this.properties.startpos.x;
+        this.tail.properties.position.y = this.properties.startpos.y;
         this.tail.properties.velocity.set(0,0,0);
       }
 
@@ -159,6 +163,10 @@ elation.require([], function() {
         }
       }
       return false;
+    }
+    this.setStartpos = function(x, y) {
+      this.properties.startpos.x = x;
+      this.properties.startpos.y = y;
     }
   }, elation.engine.things.generic);
   elation.component.add('engine.things.snake_segment', function() {
