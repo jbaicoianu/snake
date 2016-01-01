@@ -4,34 +4,45 @@ elation.require([], function() {
       this.defineProperties({
         width: { type: 'integer', default: 60 },
         height: { type: 'integer', default: 60 },
-        blocksize: { type: 'float', default: 1 }
+        blocksize: { type: 'float', default: 1 },
+        startpos: { type: 'vector2', default: [0,0] },
+        level: { type: 'integer', default: 1 }
       });
+      this.loadLevel(this.properties.level);
     }
     this.createObject3D = function() {
+      this.map = this.generate(this.properties.width, this.properties.height);
+
+      var geometry = this.generateGeometry(this.map),
+          blocksize = this.properties.blocksize,
+          mat   = new THREE.MeshPhongMaterial({ color: 0x0000ff }),
+          walls = new THREE.Mesh(geometry, mat),
+          floor = new THREE.Mesh(new THREE.PlaneGeometry(this.properties.width, this.properties.height), new THREE.MeshPhongMaterial({color: 0x116666}));
+
+      floor.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-blocksize/2, -blocksize/2, -blocksize/2));
+      floor.add(walls);
+      this.walls = walls;
+      return floor;
+    }
+    this.generateGeometry = function(map) {
       var geometry = new THREE.Geometry(),
           blocksize = this.properties.blocksize,
           box      = new THREE.BoxGeometry(blocksize, blocksize, blocksize),
-          mat      = new THREE.MeshPhongMaterial({ color: new THREE.Color(0x0000ff) }),
           mesh     = new THREE.Mesh(box);
-          
-
-      this.map = this.generate(this.properties.width, this.properties.height);
-
-      var offset = [(blocksize * this.map[0].length) / 2, (blocksize * this.map.length) / 2];
-      for (var row = 0; row < this.map.length; row++) {
-        for (var col = 0; col < this.map[row].length; col++) {
-          if (this.map[row][col] == 1) {
-            mesh.position.fromArray([col * blocksize - offset[0], row * blocksize - offset[1], 0]);
+      var offset = [(blocksize * map[0].length) / 2, (blocksize * map.length) / 2];
+      for (var row = 0; row < map.length; row++) {
+        for (var col = 0; col < map[row].length; col++) {
+          if (map[row][col] == 'W') {
+            mesh.position.fromArray([col * blocksize - offset[0], - (row * blocksize - offset[1]) - 1, 0]);
             mesh.updateMatrix();
             geometry.merge(mesh.geometry, mesh.matrix);
+          } else if (map[row][col] == 'S') {
+            this.properties.startpos.x = col;
+            this.properties.startpos.y = this.properties.height - 1 - row;
           }
         }
       }
-      var walls = new THREE.Mesh(geometry, mat);
-      var floor = new THREE.Mesh(new THREE.PlaneGeometry(this.properties.width, this.properties.height), new THREE.MeshPhongMaterial({color: 0x116666}));
-      floor.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-blocksize/2, -blocksize/2, -blocksize/2));
-      floor.add(walls);
-      return floor;
+      return geometry;
     }
     this.generate = function(width, height) {
       var map = [];
@@ -42,6 +53,32 @@ elation.require([], function() {
         } 
       } 
       return map;
+    }
+    this.loadLevel = function(n) {
+      var levelnum = (n < 10 ? '0' : '') + n;
+      var levelpath = '/media/snake/levels/level' + levelnum + '.txt';
+      elation.net.get(levelpath, {}, {callback: elation.bind(this, this.handleLevelLoad) });
+    }
+    this.parseLevel = function(level) {
+      var blocks = [];
+      var lines = level.split('\n');
+      for (var y = 0; y < lines.length; y++) {
+        var line = lines[y].split('');
+        if (line.length > 0) {
+          blocks.push(line);
+        }
+      }
+      return blocks;
+    }
+    this.handleLevelLoad = function(data) {
+      var blocks = this.parseLevel(data);
+      this.walls.geometry = this.generateGeometry(blocks);
+      this.map = blocks;
+      this.refresh();
+      elation.events.fire({type: 'level_load', element: this, data: blocks});
+    }
+    this.getBlock = function(x, y) {
+      return this.map[y][x];
     }
   }, elation.engine.things.generic);
 });

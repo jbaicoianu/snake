@@ -12,6 +12,9 @@ elation.require([
 
   elation.component.add('snake.main', function() {
     this.initWorld = function() {
+      this.currentlevel = 1;
+      this.currenttarget = 1;
+
       // Create all the different things which make up the world
       var things = this.world.load({
         name: 'world',
@@ -50,7 +53,8 @@ elation.require([
             name: 'level',
             type: 'snake_level',
             properties: {
-              collidable: false // temporary
+              collidable: false, // temporary
+              level: this.currentlevel
             }
           },
           'player': {
@@ -118,6 +122,7 @@ elation.require([
         this.setHighScore(localStorage['snake.highscore']);
       }
 
+      elation.events.add(this.level, 'level_load', elation.bind(this, this.reset));
       elation.events.add(this.target, 'collide', elation.bind(this, this.advance));
 
       // Activate the camera
@@ -133,14 +138,14 @@ elation.require([
     }
     this.reset = function(ev) {
       // Put the game board back in its starting state
-      if (!ev || ev.value === 0) {
-        console.log('reset!');
+      if (!ev || ev.value === undefined || ev.value === 0) {
+        var offset = this.getMapOffset();
+        this.player.properties.startpos.set(this.level.properties.startpos.x - offset[0], this.level.properties.startpos.y - offset[1]);;
         this.player.reset();
         this.setSpeed(1);
-        var offset = this.getMapOffset();
         this.target.properties.position.set(Math.floor(Math.random() * (this.level.map[0].length - 2)) - offset[0] + 1, Math.floor(Math.random() * (this.level.map.length - 2)) - offset[1] + 1, 0);
-        this.currentlevel = 1;
-        this.target.setLabel(this.currentlevel);
+        this.currenttarget = 1;
+        this.target.setLabel(this.currenttarget);
 
         if (this.score > this.highscore) {
           this.setHighScore(this.score);
@@ -153,20 +158,29 @@ elation.require([
     }
     this.advance = function() {
       // Update score display
-      this.setScore(this.score + this.currentlevel * 1000);
+      this.setScore(this.score + this.currenttarget * 1000);
       // Increase the difficulty by one level
-      this.currentlevel++;
+      this.currenttarget++;
       var offset = this.getMapOffset();
 
-      // Pick a new spot for the target which isn't touching the snake
-      var newtargetpos = false;
-      while (!newtargetpos || this.player.isTouching(newtargetpos[0], newtargetpos[1])) {
-        newtargetpos = [Math.floor(Math.random() * (this.level.map[0].length - 2)) - offset[0] + 1, Math.floor(Math.random() * (this.level.map.length - 2)) - offset[0] + 1];
+      if (this.currenttarget < 10) {
+        // Pick a new spot for the target which isn't touching the snake
+        var newtargetpos = false;
+        while (!newtargetpos || this.player.isTouching(newtargetpos[0], newtargetpos[1]) || this.level.getBlock(newtargetpos[0] + offset[0], Math.round(newtargetpos[1] + offset[1])) == 'W') {
+          newtargetpos = [Math.floor(Math.random() * (this.level.map[0].length - 2)) - offset[0] + 1, Math.floor(Math.random() * (this.level.map.length - 2)) - offset[0] + 1];
+        }
+        this.target.properties.position.set(newtargetpos[0], newtargetpos[1], 0);
+        this.target.setLabel(this.currenttarget);
+        //this.setSpeed(this.currenttarget);
+        this.player.setLength(this.currenttarget);
+      } else {
+        this.advanceLevel();
       }
-      this.target.properties.position.set(newtargetpos[0], newtargetpos[1], 0);
-      this.target.setLabel(this.currentlevel);
-      //this.setSpeed(this.currentlevel);
-      this.player.setLength(this.currentlevel);
+    }
+    this.advanceLevel = function() {
+      this.currentlevel++;
+      this.currenttarget = 1;
+      this.level.loadLevel(this.currentlevel);
     }
     this.setSpeed = function(speed) {
       // Determine speed from a formula based on the current level
@@ -197,9 +211,9 @@ elation.require([
 
       // Increment score only if moving
       if (this.player.properties.velocity.lengthSq() > 1e-6) {
-        this.setScore(this.score + this.player.segments.length / 5);
+        this.setScore(this.score + Math.pow(this.player.segments.length / 5, this.player.properties.speedmultiplier));
       }
-      setTimeout(elation.bind(this, this.tick), 1000 / this.gamespeed);
+      setTimeout(elation.bind(this, this.tick), 1000 / (this.gamespeed * this.player.properties.speedmultiplier));
     }
     this.getMapOffset = function() {
       return [(this.level.map[0].length) / 2, (this.level.map.length) / 2];
@@ -209,11 +223,12 @@ elation.require([
       var offset = this.getMapOffset();
       var ppos = [Math.round(this.player.properties.position.x + offset[0]) + move[0], Math.round(this.player.properties.position.y + offset[1]) + move[1]];
       try {
-        var block = this.level.map[ppos[1]][ppos[0]];
+        // FIXME - hackish!
+        var block = this.level.map[59 - ppos[1]][ppos[0]];
       } catch(e) {
         block = true;
       }
-      block = block || this.player.isCollidingWithSelf();
+      block = block == 'W' || this.player.isCollidingWithSelf();
       if (block) {
         console.log('crashed!');
         this.reset();

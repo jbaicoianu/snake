@@ -1,7 +1,7 @@
 elation.require([], function() {
   elation.component.add('engine.things.snake_target', function() {
     this.createObject3D = function() {
-      var geo = new THREE.SphereGeometry(.5);
+      var geo = new THREE.SphereGeometry(.25);
       var mat = new THREE.MeshPhongMaterial({color: 0x00ff00, transparent: true, opacity: 0});
       var mesh = new THREE.Mesh(geo, mat);
       this.light = new THREE.SpotLight(0xffff00, .5, 1000);
