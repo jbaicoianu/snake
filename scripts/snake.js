@@ -206,7 +206,7 @@ elation.require([
     }
     this.tick = function() {
       // Main game loop
-      this.checkCollisions(this.player.movedir);
+      this.checkCollisions(this.player.lastmovedir);
       this.player.update();
 
       // Increment score only if moving
