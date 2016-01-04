@@ -18,7 +18,7 @@ elation.require([], function() {
       //this.label = new THREE.Mesh(new THREE.TextGeometry(label), new THREE.MeshPhongMaterial({color: 0xccccc}));
       this.label = this.spawn('label', 'label_' + label, {
         text: label, 
-        size: 1.25,
+        size: 1,
         thickness: 0.85, 
         font: 'Graph 35+ pix',
         align: 'center',
