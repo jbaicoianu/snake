@@ -23,13 +23,13 @@ elation.require([], function() {
       return new THREE.Object3D();
     }
     this.createChildren = function() {
-      this.head = this.spawn('snake_segment', 'segment_head', {
+      this.head = this.parent.spawn('snake_segment', 'segment_head', {
         position: this.properties.position.toArray()
-      }, true);
-      this.tail = this.spawn('snake_segment', 'segment_tail', {
+      });
+      this.tail = this.parent.spawn('snake_segment', 'segment_tail', {
         position: this.properties.position.toArray(),
         collidable: false
-      }, true);
+      });
     }
     this.createSegment = function(id) {
       if (!id) id = this.segments.length;
@@ -39,7 +39,7 @@ elation.require([], function() {
       pos.z = Math.round(pos.z);
 
       var segment = new THREE.Mesh(new THREE.CubeGeometry(1,1,1), new THREE.MeshPhongMaterial({color: 0xffcc00}));
-      this.objects['3d'].parent.add(segment);
+      this.parent.objects['3d'].add(segment);
       segment.position.copy(pos);
       
       return segment;
@@ -69,8 +69,19 @@ elation.require([], function() {
         this.lastmove = dir;
       }
     }
+    this.moveRandom = function() {
+      var moves = ['move_up', 'move_down', 'move_left', 'move_right'];
+      this.move(moves[Math.floor(Math.random() * moves.length)]);
+    }
     this.setLength = function(length) {
       this.addSegments(10);
+    }
+    this.stop = function() {
+      this.properties.velocity.set(0,0,0);
+      this.head.properties.velocity.set(0,0,0);
+      this.tail.properties.velocity.set(0,0,0);
+    }
+    this.dissolve = function() {
     }
     this.update = function() {
       var moves = {
@@ -90,6 +101,9 @@ elation.require([], function() {
     this.snapPosition = function() {
       var pos = this.properties.position;
       pos.set(Math.round(pos.x), Math.round(pos.y), Math.round(pos.z));
+      if (!this.isMoving()) {
+        return;
+      }
 
       if (this.head && this.tail) {
         this.head.properties.position.copy(pos);
@@ -129,14 +143,18 @@ elation.require([], function() {
       }
 
       this.lastmovedir = [0,0];
+      this.lastmove = false;
       this.refresh();
       for (var i = 0; i < this.segments.length; i++) {
-        this.objects['3d'].parent.remove(this.segments[i]);
+        this.parent.objects['3d'].remove(this.segments[i]);
       }
       this.segments = [];
       this.addSegments(5);
     }
 
+    this.isMoving = function() {
+      return (this.properties.velocity.lengthSq() > 1e-6);
+    }
     this.isTouching = function(x, y) {
       for (var i = 1; i < this.segments.length; i++) {
         var segpos = this.segments[i].position;
@@ -147,7 +165,7 @@ elation.require([], function() {
       return false;
     }
     this.isCollidingWithSelf = function() {
-      if (this.properties.velocity.lengthSq() < 1e-6) {
+      if (!this.isMoving()) {
         return false;
       }
       var pos = new THREE.Vector3(
@@ -167,6 +185,44 @@ elation.require([], function() {
     this.setStartpos = function(x, y) {
       this.properties.startpos.x = x;
       this.properties.startpos.y = y;
+    }
+    this.pause = function() {
+      this.pausedvelocity = this.properties.velocity.clone();
+      this.properties.velocity.set(0,0,0);
+      if (this.head && this.tail) {
+        this.head.properties.velocity.set(0,0,0);
+        this.tail.properties.velocity.set(0,0,0);
+      }
+    }
+    this.resume = function() {
+      if (this.pausedvelocity) {
+        //this.properties.velocity.copy(this.pausedvelocity);
+      }
+    }
+    this.begin = function(startdir) {
+      this.moves = [];
+      this.enable();
+      if (startdir) {
+        this.move(startdir);
+      } else {
+        this.moveRandom();
+      }
+    }
+    this.enable = function() {
+      this.engine.systems.controls.activateContext('player');
+      this.resume();
+      this.show();
+    }
+    this.disable = function() {
+      this.engine.systems.controls.deactivateContext('player');
+      this.pause();
+      this.hide();
+    }
+    this.show = function() {
+      this.objects['3d'].visible = true;
+    }
+    this.hide = function() {
+      this.objects['3d'].visible = false;
     }
   }, elation.engine.things.generic);
   elation.component.add('engine.things.snake_segment', function() {
