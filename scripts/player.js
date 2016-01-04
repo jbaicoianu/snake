@@ -80,6 +80,7 @@ elation.require([], function() {
       this.properties.velocity.set(0,0,0);
       this.head.properties.velocity.set(0,0,0);
       this.tail.properties.velocity.set(0,0,0);
+      this.moves = [];
     }
     this.dissolve = function() {
     }
