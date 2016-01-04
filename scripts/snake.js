@@ -201,13 +201,14 @@ elation.require([
       }
     }
     this.die = function() {
+      this.player.stop();
+      this.player.disable();
+
       this.setLives(this.lives - 1);
       this.setScore(this.score - 1000);
 
-      this.player.stop();
-      this.player.disable();
       this.messagebox.showMessage("Sammy Dies! Push Space! --->").then(elation.bind(this, function() { 
-        if (this.lives == 0) {
+        if (this.lives <= 0) {
           if (this.score > this.highscore) {
             this.setHighScore(this.score);
           }
