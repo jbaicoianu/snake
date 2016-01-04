@@ -294,27 +294,14 @@ elation.require([
       this.checkCollisions(this.player.lastmovedir);
       this.player.update();
 
-      // Increment score only if moving
-/*
-      if (this.player.properties.velocity.lengthSq() > 1e-6) {
-        this.setScore(this.score + Math.pow(this.player.segments.length / 5, this.player.properties.speedmultiplier));
-      }
-*/
       setTimeout(elation.bind(this, this.tick), 1000 / (this.gamespeed * this.player.properties.speedmultiplier));
     }
     this.checkCollisions = function(move) {
       // Who's touching who?
       var ppos = [Math.round(this.player.properties.position.x), Math.round(this.level.map.length - 1 - this.player.properties.position.y)];
-      try {
-        // FIXME - hackish!
-        var block = this.level.getBlock(ppos[0], ppos[1]);
-//console.log(ppos, block);
-      } catch(e) {
-        block = true;
-      }
+      var block = this.level.getBlock(ppos[0], ppos[1]);
       var colliding = (this.player.isMoving() && block == 'W') || this.player.isCollidingWithSelf();
       if (colliding) {
-        console.log('crashed!');
         this.die();
       }
     }
