@@ -55,8 +55,8 @@ elation.require(['engine.things.label'], function() {
     this.enableControls = function() {
       if (!this.controls) {
         this.controls = this.engine.systems.controls.addContext('messagebox', {
-          'accept': ['keyboard_space,keyboard_y', elation.bind(this, this.updateControls)],
-          'deny': ['keyboard_n', elation.bind(this, this.updateControls)],
+          'accept': ['keyboard_space,keyboard_y,gamepad_0_button_0', elation.bind(this, this.updateControls)],
+          'deny': ['keyboard_n,gamepad_0_button_1', elation.bind(this, this.updateControls)],
         });
       }
       this.engine.systems.controls.activateContext('messagebox');

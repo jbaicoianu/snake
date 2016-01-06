@@ -57,6 +57,14 @@ elation.require([], function() {
     this.updateControls = function(ev) {
       if (ev.value == 1) {
         this.move(ev.type);
+      } else if (ev.value == -1) {
+        var reversemove = false;
+        if (ev.type == 'move_right') reversemove = 'move_left';
+        else if (ev.type == 'move_down') reversemove = 'move_up';
+
+        if (reversemove) {
+          this.move(reversemove);
+        }
       }
     }
     this.move = function(dir) {
