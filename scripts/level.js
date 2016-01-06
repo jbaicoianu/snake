@@ -11,7 +11,9 @@ elation.require([], function() {
         startdir2: { type: 'string', default: 'move_right' },
         level: { type: 'integer', default: 1 }
       });
-      this.loadLevel(this.properties.level);
+      if (this.properties.level > 0) {
+        this.loadLevel(this.properties.level);
+      }
     }
     this.createObject3D = function() {
       this.map = this.generate(this.properties.width, this.properties.height);
@@ -30,12 +32,16 @@ elation.require([], function() {
       return floor;
     }
     this.generateFloorGeometry = function(map) {
-      var width = map[0].length,
-          height = map.length,
-          blocksize = this.properties.blocksize;
-      var floorgeometry = new THREE.PlaneGeometry(width, height);
+      if (map.length > 0) {
+        var width = map[0].length,
+            height = map.length,
+            blocksize = this.properties.blocksize;
+        var floorgeometry = new THREE.PlaneGeometry(width, height);
 
-      floorgeometry.applyMatrix(new THREE.Matrix4().makeTranslation((width - blocksize) / 2, (height - blocksize) / 2, 0));
+        floorgeometry.applyMatrix(new THREE.Matrix4().makeTranslation((width - blocksize) / 2, (height - blocksize) / 2, 0));
+      } else {
+        var floorgeometry = new THREE.Geometry();
+      }
       return floorgeometry;
     }
     this.generateGeometry = function(map) {
@@ -118,7 +124,10 @@ elation.require([], function() {
       elation.events.fire({type: 'level_load', element: this, data: blocks});
     }
     this.getBlock = function(x, y) {
-      return this.map[y][x];
+      if (y > 0 && y < this.map.length && this.map[y][x]) { 
+        return this.map[y][x];
+      }
+      return 'W';
     }
   }, elation.engine.things.generic);
 });
