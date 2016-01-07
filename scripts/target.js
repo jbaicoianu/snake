@@ -1,4 +1,4 @@
-elation.require([], function() {
+elation.require(['engine.things.sound'], function() {
   elation.component.add('engine.things.snake_target', function() {
     this.createObject3D = function() {
       var geo = new THREE.SphereGeometry(.25);
@@ -12,6 +12,7 @@ elation.require([], function() {
       return mesh;
     }
     this.createChildren = function() {
+      this.sound = this.spawn('sound', 'target_sound', {src: '/media/snake/sounds/SFX_Powerup_47.ogg', loop: false});
     }
     this.setLabel = function(label) {
       if (this.label) this.remove(this.label);
@@ -19,12 +20,15 @@ elation.require([], function() {
       this.label = this.spawn('label', 'label_' + label, {
         text: label, 
         size: 1,
-        thickness: 0.85, 
+        thickness: 1.15,
         font: 'Graph 35+ pix',
         align: 'center',
         verticalalign: 'middle',
         zalign: 'middle'
       });
+      if (this.sound && !this.sound.playing) {
+        this.sound.play();
+      }
     }
   }, elation.engine.things.generic);
 });
