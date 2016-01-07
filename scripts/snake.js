@@ -1,20 +1,34 @@
 elation.require([], function() {
   elation.component.add('engine.things.snake_snake', function() {
     this.postinit = function() {
+      this.controlmappings = {
+        player1: {
+          'move_up': ['keyboard_up,gamepad_0_button_12', elation.bind(this, this.updateControls)],
+          'move_down': ['keyboard_down,gamepad_0_axis_1,gamepad_0_button_13', elation.bind(this, this.updateControls)],
+          'move_left': ['keyboard_left,gamepad_0_button_14', elation.bind(this, this.updateControls)],
+          'move_right': ['keyboard_right,gamepad_0_axis_0,gamepad_0_button_15', elation.bind(this, this.updateControls)],
+        },
+        player2: {
+          'move_up': ['keyboard_w', elation.bind(this, this.updateControls)],
+          'move_down': ['keyboard_s,gamepad_0_axis_3', elation.bind(this, this.updateControls)],
+          'move_left': ['keyboard_a', elation.bind(this, this.updateControls)],
+          'move_right': ['keyboard_d,gamepad_0_axis_2', elation.bind(this, this.updateControls)],
+        }
+      };
       this.defineProperties({
         startpos: { type: 'vector2', default: [0,0] },
         speed: { type: 'float', default: 2 },
-        speedmultiplier: { type: 'float', default: 1 }
+        speedmultiplier: { type: 'float', default: 1 },
+        name: { type: 'string', default: 'Sammy' },
+        lives: { type: 'integer', default: 5 },
+        controls: { type: 'string', default: 'player1' },
+        color: { type: 'color', default: 0xffff00 }
       });
-      this.controls = this.engine.systems.controls.addContext('player', {
-        'move_up': ['keyboard_w,keyboard_shift_w,keyboard_up', elation.bind(this, this.updateControls)],
-        'move_down': ['keyboard_s,keyboard_shift_s,gamepad_0_axis_1,keyboard_down', elation.bind(this, this.updateControls)],
-        'move_left': ['keyboard_a,keyboard_shift_a,keyboard_left', elation.bind(this, this.updateControls)],
-        'move_right': ['keyboard_d,keyboard_shift_d,gamepad_0_axis_0,keyboard_right', elation.bind(this, this.updateControls)],
-        //'reset': ['keyboard_r', elation.bind(this, this.reset)],
-        'speedup': ['keyboard_z', elation.bind(this, this.speedup)],
-      });
-      this.engine.systems.controls.activateContext('player');
+      var controls = this.properties.controls;
+
+      this.controls = this.engine.systems.controls.addContext(controls, this.controlmappings[controls]);
+
+      this.engine.systems.controls.activateContext(controls);
       this.moves = [];
       this.lastmovedir = [0,0];
       this.segments = [];
@@ -23,12 +37,16 @@ elation.require([], function() {
       return new THREE.Object3D();
     }
     this.createChildren = function() {
-      this.head = this.parent.spawn('snake_segment', 'segment_head', {
-        position: this.properties.position.toArray()
-      });
-      this.tail = this.parent.spawn('snake_segment', 'segment_tail', {
+      this.head = this.parent.spawn('snake_segment', this.id + '_segment_head', {
         position: this.properties.position.toArray(),
-        collidable: false
+        color: this.properties.color,
+        player: this
+      });
+      this.tail = this.parent.spawn('snake_segment', this.id + '_segment_tail', {
+        position: this.properties.position.toArray(),
+        collidable: false,
+        color: this.properties.color,
+        player: this
       });
     }
     this.createSegment = function(id) {
@@ -38,7 +56,7 @@ elation.require([], function() {
       pos.y = Math.round(pos.y);
       pos.z = Math.round(pos.z);
 
-      var segment = new THREE.Mesh(new THREE.CubeGeometry(1,1,1), new THREE.MeshPhongMaterial({color: 0xffcc00}));
+      var segment = new THREE.Mesh(new THREE.CubeGeometry(1,1,1), new THREE.MeshPhongMaterial({color: this.properties.color}));
       this.parent.objects['3d'].add(segment);
       segment.position.copy(pos);
       
@@ -55,9 +73,10 @@ elation.require([], function() {
       }
     }
     this.updateControls = function(ev) {
-      if (ev.value == 1) {
+      var threshold = 1;
+      if (ev.value >= threshold) {
         this.move(ev.type);
-      } else if (ev.value == -1) {
+      } else if (ev.value <= -threshold) {
         var reversemove = false;
         if (ev.type == 'move_right') reversemove = 'move_left';
         else if (ev.type == 'move_down') reversemove = 'move_up';
@@ -86,8 +105,10 @@ elation.require([], function() {
     }
     this.stop = function() {
       this.properties.velocity.set(0,0,0);
-      this.head.properties.velocity.set(0,0,0);
-      this.tail.properties.velocity.set(0,0,0);
+      if (this.head && this.tail) {
+        this.head.properties.velocity.set(0,0,0);
+        this.tail.properties.velocity.set(0,0,0);
+      }
       this.moves = [];
     }
     this.dissolve = function() {
@@ -165,9 +186,10 @@ elation.require([], function() {
       return (this.properties.velocity.lengthSq() > 1e-6);
     }
     this.isTouching = function(x, y) {
+      var yoffset = this.parent.map.length - 1;
       for (var i = 1; i < this.segments.length; i++) {
         var segpos = this.segments[i].position;
-        if (segpos.x == x && segpos.y == y) {
+        if (segpos.x == x && yoffset - segpos.y == y) {
           return true;
         }
       }
@@ -218,12 +240,12 @@ elation.require([], function() {
       }
     }
     this.enable = function() {
-      this.engine.systems.controls.activateContext('player');
+      this.engine.systems.controls.activateContext(this.properties.controls);
       this.resume();
       this.show();
     }
     this.disable = function() {
-      this.engine.systems.controls.deactivateContext('player');
+      this.engine.systems.controls.deactivateContext(this.properties.controls);
       this.pause();
       this.hide();
     }
@@ -233,10 +255,29 @@ elation.require([], function() {
     this.hide = function() {
       this.objects['3d'].visible = false;
     }
+    this.crash = function() {
+      this.properties.lives--;
+      this.stop();
+      elation.events.fire({type: 'die', element: this, data: this.properties.lives});
+    }
+    this.die = function() {
+      this.head.die();
+      this.tail.die();
+      for (var i = 0; i < this.segments.length; i++) {
+        this.parent.objects['3d'].remove(this.segments[i]);
+      }
+      elation.engine.things.snake_snake.extendclass.die.call(this);
+    }
   }, elation.engine.things.generic);
   elation.component.add('engine.things.snake_segment', function() {
+    this.postinit = function() {
+      this.defineProperties({
+        player: { type: 'object' },
+        color: { type: 'color', default: 0xffff00 }
+      });
+    }
     this.createObject3D = function() {
-      var segment = new THREE.Mesh(new THREE.CubeGeometry(1,1,1), new THREE.MeshPhongMaterial({color: 0xffff00}));
+      var segment = new THREE.Mesh(new THREE.CubeGeometry(1,1,1), new THREE.MeshPhongMaterial({color: this.properties.color}));
       return segment;
     }
   }, elation.engine.things.generic);
