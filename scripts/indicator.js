@@ -1,5 +1,5 @@
 elation.require(['engine.things.label'], function() {
-  elation.require('snake.fonts.FontAwesome_Regular');
+  //elation.require('snake.fonts.FontAwesome_Regular');
   elation.component.add('engine.things.snake_indicator', function() {
     this.icons = {
       'gamepad': '',
@@ -61,7 +61,10 @@ elation.require(['engine.things.label'], function() {
         font: 'FontAwesome',
         align: 'left',
         verticalalign: 'top',
-        collidable: false
+        collidable: false,
+        'bevel.enabled': true,
+        'bevel.thickness': .1,
+        'bevel.size': .1,
       });
       this.label = this.spawn('label', this.id + '_label', { 
         text: this.properties.label,
@@ -72,7 +75,10 @@ elation.require(['engine.things.label'], function() {
         align: 'left',
         verticalalign: 'top',
         position: [5,0,0],
-        collidable: false
+        collidable: false,
+        'bevel.enabled': true,
+        'bevel.thickness': .05,
+        'bevel.size': .05,
       });
 
       var desc = this.getDescription();
@@ -86,7 +92,10 @@ elation.require(['engine.things.label'], function() {
         align: 'left',
         verticalalign: 'top',
         position: [5,-2,0],
-        collidable: false
+        collidable: false,
+        'bevel.enabled': true,
+        'bevel.thickness': .02,
+        'bevel.size': .02,
       });
       var min = new THREE.Vector3(Infinity, Infinity, Infinity),
           max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);

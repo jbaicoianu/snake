@@ -8,9 +8,22 @@ elation.require([
     'engine.external.three.three',
   ], function() {
   // load font separately
-  elation.require('snake.fonts.Graph 35+ pix_Regular');
+  //elation.require('snake.fonts.Graph 35+ pix_Regular');
+  elation.engine.assets.get({
+    'assettype':'font', 
+    'name':'Graph 35+ pix', 
+    'src':'/scripts/snake/fonts/Graph 35+ pix_Regular.js'
+  });
+  elation.engine.assets.get({
+    'assettype':'font', 
+    'name':'FontAwesome', 
+    'src':'/scripts/snake/fonts/FontAwesome_Regular.js'
+  });
 
   elation.component.add('snake.game', function() {
+    this.initEngine = function() {
+      this.enginecfg.crosshair = false;
+    }
     this.initWorld = function() {
       this.currentlevel = 0;
       this.currenttarget = 1;
@@ -70,6 +83,9 @@ elation.require([
               thickness: 1,
               //font: 'Repetition Scrolling'
               font: 'Graph 35+ pix',
+              'bevel.enabled': true,
+              'bevel.thickness': .05,
+              'bevel.size': .05,
               collidable: false
             }
           },
@@ -85,6 +101,9 @@ elation.require([
               font: 'Graph 35+ pix',
               align: 'right',
               verticalalign: 'bottom',
+              'bevel.enabled': true,
+              'bevel.thickness': .05,
+              'bevel.size': .05,
               collidable: false
             }
           },
@@ -99,6 +118,9 @@ elation.require([
               //font: 'Repetition Scrolling',
               font: 'Graph 35+ pix',
               align: 'right',
+              'bevel.enabled': true,
+              'bevel.thickness': .05,
+              'bevel.size': .05,
               collidable: false
             }
           },
@@ -113,6 +135,9 @@ elation.require([
               //font: 'Repetition Scrolling',
               font: 'Graph 35+ pix',
               align: 'right',
+              'bevel.enabled': true,
+              'bevel.thickness': .05,
+              'bevel.size': .05,
               collidable: false
             }
           },
@@ -129,7 +154,10 @@ elation.require([
               font: 'Graph 35+ pix',
               align: 'center',
               verticalalign: 'middle',
-              collidable: false
+              collidable: false,
+              'bevel.enabled': true,
+              'bevel.thickness': .05,
+              'bevel.size': .05,
             }
           }
         }

@@ -24,7 +24,10 @@ elation.require(['engine.things.sound'], function() {
         font: 'Graph 35+ pix',
         align: 'center',
         verticalalign: 'middle',
-        zalign: 'middle'
+        zalign: 'middle',
+        'bevel.enabled': true,
+        'bevel.thickness': .05,
+        'bevel.size': .05,
       });
       if (this.sound && !this.sound.playing) {
         this.sound.play();
