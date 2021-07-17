@@ -12,12 +12,12 @@ elation.require([
   elation.engine.assets.get({
     'assettype':'font', 
     'name':'Graph 35+ pix', 
-    'src':'/scripts/snake/fonts/Graph 35+ pix_Regular.js'
+    'src':'media/fonts/Graph 35+ pix_Regular.js'
   });
   elation.engine.assets.get({
     'assettype':'font', 
     'name':'FontAwesome', 
-    'src':'/scripts/snake/fonts/FontAwesome_Regular.js'
+    'src':'media/fonts/FontAwesome_Regular.js'
   });
 
   elation.component.add('snake.game', function() {
@@ -29,7 +29,7 @@ elation.require([
       this.currenttarget = 1;
       this.gamespeed = localStorage['snake.settings.difficulty'] || 16;
       this.numplayers = 1;
-      this.player = [];
+      this.players = [];
 
       // Create all the different things which make up the world
       var things = this.world.load({
@@ -162,6 +162,7 @@ elation.require([
           }
         }
       });
+      console.log('did things', things);
 
       // Retain references for later use
       this.camera = things.children.world.children.camera;
@@ -196,14 +197,14 @@ elation.require([
       this.engine.systems.controls.activateContext('world');
       // Start it up!
       this.messagebox.showMessage( "Elation Snake!\n \n Navigate your snake around the game board trying\n to eat up numbers while avoiding running into walls\n or other snakes.  The more numbers you eat up, the\n more points you gain and the longer your snake becomes.\n\n\n\n\n\n\n\n\nPush Space to play!").then(elation.bind(this, function() { 
-        this.player[0] = this.level.spawn('snake_snake', 'player1', { controls: 'player1' });
+        this.players[0] = this.level.spawn('snake_snake', 'player1', { controls: 'player1' });
         if (this.numplayers > 1) {
-          this.player[1] = this.level.spawn('snake_snake', 'player2', { controls: 'player2', color: 0xff00ff, name: 'Jake'});
+          this.players[1] = this.level.spawn('snake_snake', 'player2', { controls: 'player2', color: 0xff00ff, name: 'Jake'});
         }
         this.target = this.level.spawn('snake_target', 'target', { position: [0,0,0] });
 
         elation.events.add(this.target, 'collide', elation.bind(this, this.advance));
-        elation.events.add(this.player, 'die', elation.bind(this, this.die));
+        elation.events.add(this.players, 'die', elation.bind(this, this.die));
 
         this.advanceLevel();
         this.tick();
@@ -325,38 +326,38 @@ elation.require([
         } else {
           this.reset(); 
           this.enableplayers();
-          if (this.player[0]) {
-            this.player[0].begin(this.level.properties.startdir);
+          if (this.players[0]) {
+            this.players[0].begin(this.level.properties.startdir);
           }
-          if (this.player[1]) {
-            this.player[1].begin(this.level.properties.startdir2);
+          if (this.players[1]) {
+            this.players[1].begin(this.level.properties.startdir2);
           }
         }
       }));
     }
     this.enableplayers = function() { 
-      for (var i = 0; i < this.player.length; i++) {
-        this.player[i].enable();
+      for (var i = 0; i < this.players.length; i++) {
+        this.players[i].enable();
       }
     }
     this.disableplayers = function() { 
-      for (var i = 0; i < this.player.length; i++) {
-        this.player[i].disable();
-        this.player[i].stop();
+      for (var i = 0; i < this.players.length; i++) {
+        this.players[i].disable();
+        this.players[i].stop();
       }
     }
     this.resetplayers = function() {
-      if (this.numplayers == 1 && this.player[1]) {
-        this.player[1].die();
-        this.player.pop();
-      } else if (this.numplayers == 2 && !this.player[1]) {
-        this.player[1] = this.level.spawn('snake_snake', 'player2', { controls: 'player2', color: 0xff00ff, name: 'Jake'});
-        elation.events.add(this.player[1], 'die', elation.bind(this, this.die));
+      if (this.numplayers == 1 && this.players[1]) {
+        this.players[1].die();
+        this.players.pop();
+      } else if (this.numplayers == 2 && !this.players[1]) {
+        this.players[1] = this.level.spawn('snake_snake', 'player2', { controls: 'player2', color: 0xff00ff, name: 'Jake'});
+        elation.events.add(this.players[1], 'die', elation.bind(this, this.die));
       }
-      for (var i = 0; i < this.player.length; i++) {
+      for (var i = 0; i < this.players.length; i++) {
         var startpos = (i == 1 ? this.level.properties.startpos2 : this.level.properties.startpos);
-        this.player[i].properties.startpos.set(startpos.x, startpos.y, 0);
-        this.player[i].reset();
+        this.players[i].properties.startpos.set(startpos.x, startpos.y, 0);
+        this.players[i].reset();
       }
     }
     this.advance = function(ev) {
@@ -374,8 +375,8 @@ elation.require([
         player.setLength(this.currenttarget);
       } else {
         this.disableplayers();
-        //this.player[0].dissolve();
-        //this.player[1].dissolve();
+        //this.players[0].dissolve();
+        //this.players[1].dissolve();
         this.advanceLevel();
       }
     }
@@ -386,11 +387,11 @@ elation.require([
       this.disableplayers();
       this.messagebox.showMessage("Level " + this.currentlevel + ", Push Space").then(elation.bind(this, function() { 
         this.enableplayers();
-        if (this.player[0]) {
-          this.player[0].begin(this.level.properties.startdir);
+        if (this.players[0]) {
+          this.players[0].begin(this.level.properties.startdir);
         }
-        if (this.player[1]) {
-          this.player[1].begin(this.level.properties.startdir2);
+        if (this.players[1]) {
+          this.players[1].begin(this.level.properties.startdir2);
         }
       }));
     }
@@ -399,8 +400,8 @@ elation.require([
       var newtargetpos = false;
       while (!newtargetpos) {
         newtargetpos = [Math.floor(Math.random() * (this.level.map[0].length - 2)) + 1, Math.floor(Math.random() * (this.level.map.length - 2)) + 1];
-        for (var i = 0; i < this.player.length; i++) {
-          if (this.player[i].isTouching(newtargetpos[0], newtargetpos[1])) {
+        for (var i = 0; i < this.players.length; i++) {
+          if (this.players[i].isTouching(newtargetpos[0], newtargetpos[1])) {
             newtargetpos = false;
           } 
         }
@@ -415,8 +416,8 @@ elation.require([
       //var realspeed = 20 + Math.pow(Math.log(speed + 1), 2);
       var realspeed = speed;
       this.gamespeed = realspeed;
-      for (var i = 0; i < this.player.length; i++) {
-        this.player[i].properties.speed = realspeed;
+      for (var i = 0; i < this.players.length; i++) {
+        this.players[i].properties.speed = realspeed;
       }
     }
     this.setScore = function(score) {
@@ -425,14 +426,14 @@ elation.require([
     }
     this.updateLives = function() {
       var labeltext = '';
-      for (var i = 0; i < this.player.length; i++) {
-        labeltext += this.player[i].properties.name + '--> Lives: ' + this.player[i].properties.lives + '\n';
+      for (var i = 0; i < this.players.length; i++) {
+        labeltext += this.players[i].properties.name + '--> Lives: ' + this.players[i].properties.lives + '\n';
       }
       this.liveslabel.setText(labeltext);
     }
     this.setLives = function(lives) {
-      for (var i = 0; i < this.player.length; i++) {
-        this.player[i].properties.lives = lives;
+      for (var i = 0; i < this.players.length; i++) {
+        this.players[i].properties.lives = lives;
       }
       this.updateLives();
     }
@@ -451,23 +452,23 @@ elation.require([
     this.tick = function() {
       // Main game loop
       this.checkCollisions();
-      for (var i = 0; i < this.player.length; i++) {
-        this.player[i].update();
+      for (var i = 0; i < this.players.length; i++) {
+        this.players[i].update();
       }
 
       setTimeout(elation.bind(this, this.tick), 1000 / this.gamespeed);
     }
     this.checkCollisions = function(move) {
       // Who's touching who?
-      for (var i = 0; i < this.player.length; i++) {
-        var ppos = [Math.round(this.player[i].properties.position.x), Math.round(this.level.map.length - 1 - this.player[i].properties.position.y)];
+      for (var i = 0; i < this.players.length; i++) {
+        var ppos = [Math.round(this.players[i].properties.position.x), Math.round(this.level.map.length - 1 - this.players[i].properties.position.y)];
         var block = this.level.getBlock(ppos[0], ppos[1]);
-        var colliding = (this.player[i].isMoving() && block == 'W');
-        for (var j = 0; j < this.player.length; j++) {
-          colliding = colliding || (this.player[i].isMoving() && this.player[j].isTouching(ppos[0], ppos[1]));
+        var colliding = (this.players[i].isMoving() && block == 'W');
+        for (var j = 0; j < this.players.length; j++) {
+          colliding = colliding || (this.players[i].isMoving() && this.players[j].isTouching(ppos[0], ppos[1]));
         }
         if (colliding) {
-          this.player[i].crash();
+          this.players[i].crash();
         }
       }
     }
